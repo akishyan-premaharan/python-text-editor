@@ -94,7 +94,7 @@ def add_text(text, added_text):
 
 def delete_text(text, text_to_delete, amt_of_deletions):
 
-    text = re.sub(text_to_delete, "", text, int(amt_of_deletions), re.I)
+    text = re.sub(text_to_delete, "", text, count=int(amt_of_deletions), flags=re.I)
 
     print(f'\n{text}')
 
@@ -106,7 +106,7 @@ def delete_text(text, text_to_delete, amt_of_deletions):
 
 def replace_text(text_to_replace, text, replacement, amt_of_replacements):
 
-    text = re.sub(text_to_replace, replacement, text, int(amt_of_replacements), re.I)
+    text = re.sub(text_to_replace, replacement, text, count=int(amt_of_replacements), flags=re.I)
 
     print(f'\n{text}')
 
@@ -118,7 +118,20 @@ def replace_text(text_to_replace, text, replacement, amt_of_replacements):
 
 def search_text(text, search):
 
-    result_amt = re.findall(search,text, re.I)
+    
+    text = text.lower()
+
+    search = search.lower()
+
+    result_amt = 0
+
+    for i in text.splitlines():
+
+      if re.search(search, i, re.I):
+
+        result_amt += 1
+
+        print(f"\n{i}")
 
     if not result_amt:
 
@@ -126,15 +139,7 @@ def search_text(text, search):
 
     else :
 
-      print(f'\nThere has been {len(result_amt)} results found for {search}.')
-
-      if len(text.splitlines()) > 1:
-
-        for line in text.splitlines(): # iteration
-
-            if re.search(search, line, re.I):
-
-                 print(f"\n{line}") # prints line with result
+      print(f'\nThere has been {result_amt} results found for {search}.')
 
 # flipping text
 
@@ -142,7 +147,8 @@ def flip_text(text):
 
   flipped = list(text)
   print("\nFlipped Text:")
-  print(f'\n{"".join(flipped[::-1])}')
+  text = "".join(flipped[::-1])
+  print(f'\n{text}')
   t.sleep(2)
 
   return text
@@ -160,7 +166,7 @@ def cipher_flow(cipher_choice, encode_decode, text): # Higher order function
         case "numeric","decode":
 
             text = numeric_decode(text)
-            
+
             return text
 
         case "caesar", "encode":
@@ -186,6 +192,10 @@ def cipher_flow(cipher_choice, encode_decode, text): # Higher order function
             except ValueError:
 
                 print("\nNot a number, please enter a number.")
+
+        case _:
+
+          print("Unsupported Cipher")
 
 
 def numeric_encode(text): # Encoding for Numeric Cipher
@@ -338,7 +348,7 @@ def random_text(text, length, entropy): # random text generation function
     for i in range(0, length):
       try:
           rng_txt += chr(randint(0, entropy))
-      except OverflowError:
+      except ValueError:
           rng_txt += chr(randint(0, 1114111))
 
     text = text + rng_txt
@@ -500,7 +510,13 @@ try:
 
         user_delete = input("\nDelete: ")
 
-        replace_count = input(f"\nHow many {user_delete}s do you want to delete? (0 for all) : ")
+        try:
+
+          replace_count = input(f"\nHow many {user_delete}s do you want to delete? (0 for all) : ")
+
+        except ValueError:
+
+          replace_count = 0
 
         user_txt = delete_text(user_txt, user_delete, replace_count)
 
@@ -508,7 +524,12 @@ try:
 
         user_replaced = input("\nWhich text to Replace?: ")
         user_replacement = input("\nReplace with: ")
-        replace_count = input(f"\nHow many {user_replaced}s to replace? (0 for all): ")
+
+        try: 
+          replace_count = input(f"\nHow many {user_replaced}s to replace? (0 for all): ")
+        except ValueError:
+          replace_count = 0
+
         user_txt = replace_text(user_replaced, user_txt, user_replacement, replace_count)
 
       case "s": # Searching Software
@@ -617,9 +638,15 @@ try:
 
             user_filename = input("Write name for file (Don't worry the .txt is automatically done for you!): ")
 
-            with open(f'{user_filename}.txt', 'x') as f:
+            try:
 
-              f.write(user_txt)
+              with open(f'{user_filename}.txt', 'x') as f:
+
+                f.write(user_txt)
+
+            except FileExistsError:
+
+              print("File already exists")
 
         print("\nClosing Application...")
 
